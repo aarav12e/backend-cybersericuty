@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard — Capture Logs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #0a0c10;
+            --surface: #111318;
+            --card: #161b24;
+            --border: #1e2533;
+            --accent: #6c63ff;
+            --accent2: #00d4aa;
+            --red: #ff4d6d;
+            --text: #e2e8f0;
+            --muted: #64748b;
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── LOGIN SCREEN ─────────────────────── */
+        #login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: radial-gradient(ellipse at 50% 0%, #1a1040 0%, var(--bg) 70%);
+        }
+
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 44px 40px;
+            width: 380px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        .login-card .icon {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+        }
+
+        .login-card h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-card p {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-bottom: 28px;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .login-card input:focus {
+            border-color: var(--accent);
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            margin-top: 4px;
+        }
+
+        .login-card button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .login-card button:active {
+            transform: translateY(0);
+        }
+
+        #login-error {
+            color: var(--red);
+            font-size: 0.82rem;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* ── DASHBOARD ────────────────────────── */
+        #dashboard {
+            display: none;
+        }
+
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 36px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .logo .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(0, 212, 170, 0);
+            }
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        #count-badge {
+            background: var(--accent);
+            color: #fff;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 12px;
+        }
+
+        #logout-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #logout-btn:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        main {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 36px 24px;
+        }
+
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--muted);
+            margin-bottom: 20px;
+        }
+
+        /* ── STATS BAR ────────────────────────── */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 36px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            font-size: 1.6rem;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: var(--card);
+        }
+
+        .stat-label {
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .stat-value {
+            font-size: 1.7rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        /* ── GRID ─────────────────────────────── */
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .capture-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .capture-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .capture-card .img-wrap {
+            position: relative;
+            height: 220px;
+            background: #0d1117;
+            overflow: hidden;
+        }
+
+        .capture-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .capture-card:hover img {
+            transform: scale(1.04);
+        }
+
+        .no-img {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 2rem;
+            gap: 8px;
+        }
+
+        .no-img span {
+            font-size: 0.78rem;
+        }
+
+        .img-index {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 6px;
+            padding: 3px 9px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text);
+            backdrop-filter: blur(4px);
+        }
+
+        .capture-body {
+            padding: 16px 18px;
+        }
+
+        .time-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 12px;
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .info-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .info-chip {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 0.78rem;
+            color: var(--text);
+            flex: 1;
+            text-align: center;
+        }
+
+        .info-chip .label {
+            display: block;
+            color: var(--muted);
+            font-size: 0.68rem;
+            margin-bottom: 2px;
+        }
+
+        .map-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            margin-top: 12px;
+            padding: 9px;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(135deg, #00d4aa22, #00d4aa11);
+            border: 1px solid #00d4aa44;
+            color: var(--accent2);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .map-btn:hover {
+            background: linear-gradient(135deg, #00d4aa33, #00d4aa22);
+        }
+
+        /* ── LIGHTBOX ─────────────────────────── */
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(6px);
+        }
+
+        #lightbox.show {
+            display: flex;
+        }
+
+        #lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8);
+        }
+
+        #lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            font-size: 1.8rem;
+            color: #fff;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        /* ── EMPTY / LOADING ──────────────────── */
+        #loading,
+        #empty {
+            text-align: center;
+            padding: 80px 0;
+            color: var(--muted);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 600px) {
+            header {
+                padding: 0 16px;
+            }
+
+            main {
+                padding: 20px 12px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ══ LOGIN SCREEN ══════════════════════════════ -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="icon">🔐</div>
+            <h2>Admin Panel</h2>
+            <p>Enter your credentials to access captured data</p>
+            <input type="text" id="user-input" placeholder="Username" />
+            <input type="password" id="pass-input" placeholder="Password" />
+            <button onclick="doLogin()">Sign In</button>
+            <div id="login-error">❌ Invalid credentials</div>
+        </div>
+    </div>
+
+    <!-- ══ DASHBOARD ═════════════════════════════════ -->
+    <div id="dashboard">
+        <header>
+            <div class="logo">
+                <div class="dot"></div>
+                Admin Dashboard
+            </div>
+            <div class="header-right">
+                <span id="count-badge">0 Captures</span>
+                <button id="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <main>
+            <div class="stats" id="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-icon">📸</div>
+                    <div>
+                        <div class="stat-label">Total Captures</div>
+                        <div class="stat-value" id="stat-total">—</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📍</div>
+                    <div>
+                        <div class="stat-label">With Location</div>
+                        <div class="stat-value" id="stat-loc">—</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🖼️</div>
+                    <div>
+                        <div class="stat-label">With Photo</div>
+                        <div class="stat-value" id="stat-img">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">All Captures</div>
+
+            <div id="loading">
+                <div class="spinner"></div>
+                Loading captures…
+            </div>
+
+            <div id="empty" style="display:none;">
+                📭 No captures yet.
+            </div>
+
+            <div id="grid"></div>
+        </main>
+    </div>
+
+    <!-- ══ LIGHTBOX ══════════════════════════════════ -->
+    <div id="lightbox">
+        <span id="lightbox-close" onclick="closeLightbox()">✕</span>
+        <img id="lightbox-img" src="" alt="Full size capture" />
+    </div>
+
+    <script>
+        // ── CONFIG ──────────────────────────────────────
+        // Auto-detect: use local server when running on localhost
+        const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+            ? `${window.location.protocol}//${window.location.hostname}:3000`
+            : "https://backend-cybersericuty.onrender.com";
+        const USERNAME = "aarav12ee";
+        const PASSWORD = "waterbottle";
+        const ADMIN_KEY = "aarav12ee";   // matches server ADMIN_KEY default
+
+        // ── LOGIN ────────────────────────────────────────
+        function doLogin() {
+            const u = document.getElementById("user-input").value.trim();
+            const p = document.getElementById("pass-input").value.trim();
+
+            if (u === USERNAME && p === PASSWORD) {
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("dashboard").style.display = "block";
+                loadData();
+            } else {
+                document.getElementById("login-error").style.display = "block";
+            }
+        }
+
+        // Allow Enter key on login
+        document.addEventListener("keydown", e => {
+            if (e.key === "Enter" && document.getElementById("login-screen").style.display !== "none") {
+                doLogin();
+            }
+        });
+
+        function logout() {
+            document.getElementById("login-screen").style.display = "flex";
+            document.getElementById("dashboard").style.display = "none";
+            document.getElementById("grid").innerHTML = "";
+            document.getElementById("user-input").value = "";
+            document.getElementById("pass-input").value = "";
+        }
+
+        // ── LOAD DATA ────────────────────────────────────
+        async function loadData() {
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("empty").style.display = "none";
+            document.getElementById("grid").innerHTML = "";
+
+            try {
+                const res = await fetch(`${API_BASE}/admin-data?key=${ADMIN_KEY}`);
+                const data = await res.json();
+
+                document.getElementById("loading").style.display = "none";
+
+                if (!data.length) {
+                    document.getElementById("empty").style.display = "block";
+                    return;
+                }
+
+                // Stats
+                const withLoc = data.filter(d => d.lat && d.lng).length;
+                const withImg = data.filter(d => d.imageUrl).length;
+                document.getElementById("stat-total").textContent = data.length;
+                document.getElementById("stat-loc").textContent = withLoc;
+                document.getElementById("stat-img").textContent = withImg;
+                document.getElementById("count-badge").textContent = `${data.length} Capture${data.length !== 1 ? "s" : ""} `;
+
+                // Render cards (newest first)
+                const grid = document.getElementById("grid");
+                [...data].reverse().forEach((entry, i) => {
+                    grid.appendChild(buildCard(entry, data.length - i));
+                });
+
+            } catch (err) {
+                document.getElementById("loading").innerHTML =
+                    `<p style="color:var(--red)">⚠️ Failed to load data.<br><small>${err.message}</small></p>`;
+            }
+        }
+
+        // ── BUILD CARD ───────────────────────────────────
+        function buildCard(entry, index) {
+            const card = document.createElement("div");
+            card.className = "capture-card";
+
+            const imgSrc = entry.imageUrl ? `${API_BASE}${entry.imageUrl}` : null;
+
+            // Format time nicely
+            let timeStr = "Unknown time";
+            if (entry.time) {
+                try {
+                    const d = new Date(entry.time);
+                    timeStr = d.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+                } catch (_) { timeStr = entry.time; }
+            }
+
+            const lat = entry.lat ? parseFloat(entry.lat).toFixed(5) : "N/A";
+            const lng = entry.lng ? parseFloat(entry.lng).toFixed(5) : "N/A";
+
+            card.innerHTML = `
+      <div class="img-wrap">
+        <span class="img-index">#${index}</span>
+        ${imgSrc
+                    ? `<img src="${imgSrc}" alt="Capture ${index}" loading="lazy"
+                  onclick="openLightbox('${imgSrc}')" style="cursor:zoom-in"/>`
+                    : `<div class="no-img">📷<span>No photo</span></div>`
+                }
+      </div>
+      <div class="capture-body">
+        <div class="time-row">🕐 ${timeStr}</div>
+        <div class="info-row">
+          <div class="info-chip">
+            <span class="label">Latitude</span>
+            ${lat}
+          </div>
+          <div class="info-chip">
+            <span class="label">Longitude</span>
+            ${lng}
+          </div>
+        </div>
+        ${entry.mapLink
+                    ? `<a href="${entry.mapLink}" target="_blank" class="map-btn">
+               📍 View on Google Maps
+             </a>`
+                    : (entry.lat && entry.lng
+                        ? `<a href="https://www.google.com/maps?q=${entry.lat},${entry.lng}"
+                    target="_blank" class="map-btn">📍 View on Google Maps</a>`
+                        : `<div style="color:var(--muted);font-size:0.78rem;margin-top:10px;text-align:center">No location data</div>`)
+                }
+      </div>
+    `;
+            return card;
+        }
+
+        // ── LIGHTBOX ─────────────────────────────────────
+        function openLightbox(src) {
+            document.getElementById("lightbox-img").src = src;
+            document.getElementById("lightbox").classList.add("show");
+        }
+        function closeLightbox() {
+            document.getElementById("lightbox").classList.remove("show");
+            document.getElementById("lightbox-img").src = "";
+        }
+        document.getElementById("lightbox").addEventListener("click", e => {
+            if (e.target === document.getElementById("lightbox")) closeLightbox();
+        });
+        document.addEventListener("keydown", e => {
+            if (e.key === "Escape") closeLightbox();
+        });
+    </script>
+</body>
+
+</html>
