@@ -73,19 +73,20 @@ app.use((req, res, next) => {
 ========================= */
 app.post("/capture", upload.single("photo"), async (req, res) => {
   const { latitude, longitude } = req.body;
-  const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+  const hasLocation = latitude && longitude;
+  const mapLink = hasLocation ? `https://www.google.com/maps?q=${latitude},${longitude}` : null;
   const imageFile = req.file ? req.file.filename : null;
 
   try {
     // Save to MongoDB
-    await Capture.create({ latitude, longitude, mapLink, imageFile });
+    await Capture.create({ latitude: latitude || null, longitude: longitude || null, mapLink, imageFile });
 
     // Also append to text log as backup
     const log = `
 Time: ${new Date().toISOString()}
-Latitude: ${latitude}
-Longitude: ${longitude}
-Google Maps: ${mapLink}
+Latitude: ${latitude || "N/A"}
+Longitude: ${longitude || "N/A"}
+Google Maps: ${mapLink || "N/A"}
 Image File: ${imageFile}
 -------------------------
 `;
