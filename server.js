@@ -79,10 +79,6 @@ app.use((req, res, next) => {
 /* =========================
    SERVE PAGES
 ========================= */
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/capture.html");
-});
-
 app.get("/admin", (req, res) => {
   res.sendFile(__dirname + "/admin.html");
 });
