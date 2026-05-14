@@ -1,677 +1,1067 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard — Capture Logs</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet" />
-    <style>
-        :root {
-            --bg: #0a0c10;
-            --surface: #111318;
-            --card: #161b24;
-            --border: #1e2533;
-            --accent: #6c63ff;
-            --accent2: #00d4aa;
-            --red: #ff4d6d;
-            --text: #e2e8f0;
-            --muted: #64748b;
-            --radius: 14px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Capture Logs</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:      #050709;
+      --surface: #0b0f16;
+      --card:    #0f1520;
+      --border:  #1a2233;
+      --accent:  #00ffcc;
+      --blue:    #3d85ff;
+      --red:     #ff3d5a;
+      --yellow:  #ffd166;
+      --text:    #c9d5e0;
+      --muted:   #4a5568;
+      --radius:  12px;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-        }
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
 
-        /* ── LOGIN SCREEN ─────────────────────── */
-        #login-screen {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: radial-gradient(ellipse at 50% 0%, #1a1040 0%, var(--bg) 70%);
-        }
+    /* Subtle grid bg */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,204,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,204,0.02) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        .login-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 44px 40px;
-            width: 380px;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
-            text-align: center;
-        }
+    /* ── LOGIN ───────────────────────────────────── */
+    #login-screen {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
 
-        .login-card .icon {
-            font-size: 2.4rem;
-            margin-bottom: 12px;
-        }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 44px 40px;
+      width: 380px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,255,204,0.05);
+      position: relative;
+      overflow: hidden;
+    }
 
-        .login-card h2 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 6px;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      left: -60px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(0,255,204,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
 
-        .login-card p {
-            color: var(--muted);
-            font-size: 0.85rem;
-            margin-bottom: 28px;
-        }
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
 
-        .login-card input {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--card);
-            color: var(--text);
-            font-size: 0.95rem;
-            margin-bottom: 12px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
+    .login-logo .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
 
-        .login-card input:focus {
-            border-color: var(--accent);
-        }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
 
-        .login-card button {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            background: linear-gradient(135deg, var(--accent), #8b5cf6);
-            color: #fff;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s, transform 0.15s;
-            margin-top: 4px;
-        }
+    .login-logo span {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.05em;
+    }
 
-        .login-card button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
+    .login-card h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
 
-        .login-card button:active {
-            transform: translateY(0);
-        }
+    .login-card p {
+      color: var(--muted);
+      font-size: 0.72rem;
+      margin-bottom: 28px;
+    }
 
-        #login-error {
-            color: var(--red);
-            font-size: 0.82rem;
-            margin-top: 10px;
-            display: none;
-        }
+    .field-group {
+      margin-bottom: 12px;
+    }
 
-        /* ── DASHBOARD ────────────────────────── */
-        #dashboard {
-            display: none;
-        }
+    .field-group label {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
 
-        header {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 0 36px;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+    .field-group input {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
+    .field-group input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,255,204,0.07);
+    }
 
-        .logo .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--accent2);
-            animation: pulse 2s infinite;
-        }
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #000;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 4px;
+      letter-spacing: 0.03em;
+    }
 
-        @keyframes pulse {
+    .login-btn:hover { background: #00e6b8; transform: translateY(-1px); }
+    .login-btn:active { transform: translateY(0); }
 
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4);
-            }
+    #login-error {
+      color: var(--red);
+      font-size: 0.72rem;
+      margin-top: 10px;
+      display: none;
+      text-align: center;
+    }
 
-            50% {
-                box-shadow: 0 0 0 8px rgba(0, 212, 170, 0);
-            }
-        }
+    /* ── DASHBOARD ───────────────────────────────── */
+    #dashboard {
+      display: none;
+      position: relative;
+      z-index: 1;
+    }
 
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
+    /* Header */
+    header {
+      background: rgba(11,15,22,0.9);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-        #count-badge {
-            background: var(--accent);
-            color: #fff;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 3px 12px;
-        }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+    }
 
-        #logout-btn {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--muted);
-            border-radius: 8px;
-            padding: 6px 14px;
-            font-size: 0.82rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+    .logo .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
 
-        #logout-btn:hover {
-            border-color: var(--red);
-            color: var(--red);
-        }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-        main {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 36px 24px;
-        }
+    #count-badge {
+      background: rgba(0,255,204,0.1);
+      border: 1px solid rgba(0,255,204,0.2);
+      color: var(--accent);
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 4px 12px;
+    }
 
-        .section-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--muted);
-            margin-bottom: 20px;
-        }
+    #capture-link {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
 
-        /* ── STATS BAR ────────────────────────── */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 36px;
-        }
+    #capture-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
 
-        .stat-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 20px 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
+    #logout-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
 
-        .stat-icon {
-            font-size: 1.6rem;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            background: var(--card);
-        }
+    #logout-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
 
-        .stat-label {
-            font-size: 0.78rem;
-            color: var(--muted);
-        }
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
 
-        .stat-value {
-            font-size: 1.7rem;
-            font-weight: 700;
-            line-height: 1.2;
-        }
+    /* ── STATS ───────────────────────────────────── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
+    }
 
-        /* ── GRID ─────────────────────────────── */
-        #grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
 
-        .capture-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+    .stat-card:hover { border-color: rgba(0,255,204,0.2); }
 
-        .capture-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-        }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
 
-        .capture-card .img-wrap {
-            position: relative;
-            height: 220px;
-            background: #0d1117;
-            overflow: hidden;
-        }
+    .stat-card:hover::after { opacity: 0.4; }
 
-        .capture-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s;
-        }
+    .stat-icon {
+      font-size: 1.3rem;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
 
-        .capture-card:hover img {
-            transform: scale(1.04);
-        }
+    .stat-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 2px;
+    }
 
-        .no-img {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--muted);
-            font-size: 2rem;
-            gap: 8px;
-        }
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+    }
 
-        .no-img span {
-            font-size: 0.78rem;
-        }
+    /* ── TOOLBAR ─────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
 
-        .img-index {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 6px;
-            padding: 3px 9px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text);
-            backdrop-filter: blur(4px);
-        }
+    .section-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      flex: 1;
+    }
 
-        .capture-body {
-            padding: 16px 18px;
-        }
+    .search-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text);
+      outline: none;
+      width: 220px;
+      transition: border-color 0.2s;
+    }
 
-        .time-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 12px;
-            color: var(--muted);
-            font-size: 0.78rem;
-        }
+    .search-box:focus {
+      border-color: var(--accent);
+    }
 
-        .info-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
+    .search-box::placeholder { color: var(--muted); }
 
-        .info-chip {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 0.78rem;
-            color: var(--text);
-            flex: 1;
-            text-align: center;
-        }
+    .refresh-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      padding: 8px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
 
-        .info-chip .label {
-            display: block;
-            color: var(--muted);
-            font-size: 0.68rem;
-            margin-bottom: 2px;
-        }
+    .refresh-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
 
-        .map-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            margin-top: 12px;
-            padding: 9px;
-            border-radius: 8px;
-            border: none;
-            background: linear-gradient(135deg, #00d4aa22, #00d4aa11);
-            border: 1px solid #00d4aa44;
-            color: var(--accent2);
-            font-size: 0.82rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
+    /* ── GRID ────────────────────────────────────── */
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 18px;
+    }
 
-        .map-btn:hover {
-            background: linear-gradient(135deg, #00d4aa33, #00d4aa22);
-        }
+    .capture-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      position: relative;
+    }
 
-        /* ── LIGHTBOX ─────────────────────────── */
-        #lightbox {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 999;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(6px);
-        }
+    .capture-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      border-color: rgba(0,255,204,0.15);
+    }
 
-        #lightbox.show {
-            display: flex;
-        }
+    /* Image area */
+    .img-wrap {
+      position: relative;
+      height: 210px;
+      background: var(--surface);
+      overflow: hidden;
+    }
 
-        #lightbox img {
-            max-width: 90vw;
-            max-height: 90vh;
-            border-radius: 12px;
-            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8);
-        }
+    .img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.4s;
+      cursor: zoom-in;
+    }
 
-        #lightbox-close {
-            position: absolute;
-            top: 20px;
-            right: 24px;
-            font-size: 1.8rem;
-            color: #fff;
-            cursor: pointer;
-            line-height: 1;
-        }
+    .capture-card:hover .img-wrap img {
+      transform: scale(1.03);
+    }
 
-        /* ── EMPTY / LOADING ──────────────────── */
-        #loading,
-        #empty {
-            text-align: center;
-            padding: 80px 0;
-            color: var(--muted);
-        }
+    .no-img {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 1.8rem;
+    }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 16px;
-        }
+    .no-img span {
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+    }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+    .img-index {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(5,7,9,0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text);
+      backdrop-filter: blur(4px);
+      letter-spacing: 0.05em;
+    }
 
-        @media (max-width: 600px) {
-            header {
-                padding: 0 16px;
-            }
+    .zoom-hint {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(5,7,9,0.85);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.62rem;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.2s;
+      backdrop-filter: blur(4px);
+    }
 
-            main {
-                padding: 20px 12px;
-            }
+    .capture-card:hover .zoom-hint { opacity: 1; }
 
-            .stats {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    /* Card body */
+    .capture-body {
+      padding: 16px;
+    }
+
+    .time-row {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .coords {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .coord-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+    }
+
+    .coord-chip .label {
+      font-size: 0.58rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 2px;
+    }
+
+    .coord-chip .val {
+      font-size: 0.76rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .map-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,255,204,0.2);
+      background: rgba(0,255,204,0.05);
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+
+    .map-btn:hover {
+      background: rgba(0,255,204,0.1);
+      border-color: rgba(0,255,204,0.4);
+    }
+
+    .no-loc {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.68rem;
+      margin-top: 8px;
+      padding: 6px;
+    }
+
+    /* Delete btn */
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 28px;
+      height: 28px;
+      background: rgba(255,61,90,0.15);
+      border: 1px solid rgba(255,61,90,0.3);
+      border-radius: 6px;
+      color: var(--red);
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 5;
+    }
+
+    .capture-card:hover .delete-btn { opacity: 1; }
+    .delete-btn:hover { background: rgba(255,61,90,0.3); }
+
+    /* ── LOADING / EMPTY ─────────────────────────── */
+    #loading, #empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 0;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 14px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #empty .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    #empty p { font-size: 0.8rem; }
+    #empty a {
+      display: inline-block;
+      margin-top: 16px;
+      color: var(--accent);
+      font-size: 0.75rem;
+      text-decoration: none;
+      border: 1px solid rgba(0,255,204,0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    #empty a:hover { background: rgba(0,255,204,0.08); }
+
+    /* ── LIGHTBOX ────────────────────────────────── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+    }
+
+    #lightbox.show { display: flex; }
+
+    #lightbox img {
+      max-width: 92vw;
+      max-height: 90vh;
+      border-radius: 10px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.8);
+      animation: fadeZoom 0.2s ease;
+    }
+
+    @keyframes fadeZoom {
+      from { opacity: 0; transform: scale(0.95); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    #lightbox-close {
+      position: absolute;
+      top: 18px;
+      right: 22px;
+      font-size: 1.5rem;
+      color: #fff;
+      cursor: pointer;
+      background: rgba(255,255,255,0.1);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+
+    #lightbox-close:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── TOAST ───────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 0.75rem;
+      color: var(--text);
+      z-index: 1000;
+      transform: translateY(60px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    #toast.success { border-color: rgba(0,255,204,0.4); color: var(--accent); }
+    #toast.error   { border-color: rgba(255,61,90,0.4); color: var(--red); }
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 0 16px; }
+      main   { padding: 20px 12px; }
+      .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .search-box { width: 160px; }
+      #grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
-
 <body>
 
-    <!-- ══ LOGIN SCREEN ══════════════════════════════ -->
-    <div id="login-screen">
-        <div class="login-card">
-            <div class="icon">🔐</div>
-            <h2>Admin Panel</h2>
-            <p>Enter your credentials to access captured data</p>
-            <input type="text" id="user-input" placeholder="Username" />
-            <input type="password" id="pass-input" placeholder="Password" />
-            <button onclick="doLogin()">Sign In</button>
-            <div id="login-error">❌ Invalid credentials</div>
+<!-- ══ LOGIN ════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="dot"></div>
+      <span>INTEL DASHBOARD</span>
+    </div>
+    <h2>Sign In</h2>
+    <p>Enter credentials to access capture logs</p>
+
+    <div class="field-group">
+      <label>Username</label>
+      <input type="text" id="user-input" placeholder="admin" autocomplete="off" />
+    </div>
+    <div class="field-group">
+      <label>Password</label>
+      <input type="password" id="pass-input" placeholder="••••••••" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">→ Access Dashboard</button>
+    <div id="login-error">⚠ Invalid credentials</div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ═════════════════════════════════ -->
+<div id="dashboard">
+  <header>
+    <div class="logo">
+      <div class="dot"></div>
+      Intel Dashboard
+    </div>
+    <div class="header-right">
+      <span id="count-badge">0 Captures</span>
+      <a id="capture-link" href="/" target="_blank">+ New Capture</a>
+      <button id="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Stats -->
+    <div class="stats" id="stats-bar">
+      <div class="stat-card">
+        <div class="stat-icon">📸</div>
+        <div>
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="stat-total">—</div>
         </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📍</div>
+        <div>
+          <div class="stat-label">With GPS</div>
+          <div class="stat-value" id="stat-loc">—</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🖼️</div>
+        <div>
+          <div class="stat-label">With Photo</div>
+          <div class="stat-value" id="stat-img">—</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div>
+          <div class="stat-label">Latest</div>
+          <div class="stat-value" id="stat-latest" style="font-size:0.9rem">—</div>
+        </div>
+      </div>
     </div>
 
-    <!-- ══ DASHBOARD ═════════════════════════════════ -->
-    <div id="dashboard">
-        <header>
-            <div class="logo">
-                <div class="dot"></div>
-                Admin Dashboard
-            </div>
-            <div class="header-right">
-                <span id="count-badge">0 Captures</span>
-                <button id="logout-btn" onclick="logout()">Logout</button>
-            </div>
-        </header>
-
-        <main>
-            <div class="stats" id="stats-bar">
-                <div class="stat-card">
-                    <div class="stat-icon">📸</div>
-                    <div>
-                        <div class="stat-label">Total Captures</div>
-                        <div class="stat-value" id="stat-total">—</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📍</div>
-                    <div>
-                        <div class="stat-label">With Location</div>
-                        <div class="stat-value" id="stat-loc">—</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🖼️</div>
-                    <div>
-                        <div class="stat-label">With Photo</div>
-                        <div class="stat-value" id="stat-img">—</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-title">All Captures</div>
-
-            <div id="loading">
-                <div class="spinner"></div>
-                Loading captures…
-            </div>
-
-            <div id="empty" style="display:none;">
-                📭 No captures yet.
-            </div>
-
-            <div id="grid"></div>
-        </main>
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="section-label">All Captures</div>
+      <input class="search-box" id="search-box" type="text"
+        placeholder="🔍 Search by date, coords…"
+        oninput="filterCards()" />
+      <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
     </div>
 
-    <!-- ══ LIGHTBOX ══════════════════════════════════ -->
-    <div id="lightbox">
-        <span id="lightbox-close" onclick="closeLightbox()">✕</span>
-        <img id="lightbox-img" src="" alt="Full size capture" />
+    <!-- Grid -->
+    <div id="grid">
+      <div id="loading">
+        <div class="spinner"></div>
+        <p>Loading captures…</p>
+      </div>
+      <div id="empty" style="display:none">
+        <div class="empty-icon">📭</div>
+        <p>No captures yet.</p>
+        <a href="/" target="_blank">→ Make a capture</a>
+      </div>
     </div>
+  </main>
+</div>
 
-    <script>
-        // ── CONFIG ──────────────────────────────────────
-        // Auto-detect: use local server when running on localhost
-        const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
-            ? `${window.location.protocol}//${window.location.hostname}:3000`
-            : "https://backend-cybersericuty.onrender.com";
-        const USERNAME = "aarav12ee";
-        const PASSWORD = "waterbottle";
-        const ADMIN_KEY = "aarav12ee";   // matches server ADMIN_KEY default
+<!-- ══ LIGHTBOX ══════════════════════════════════ -->
+<div id="lightbox">
+  <div id="lightbox-close" onclick="closeLightbox()">✕</div>
+  <img id="lightbox-img" src="" alt="Full capture" />
+</div>
 
-        // ── LOGIN ────────────────────────────────────────
-        function doLogin() {
-            const u = document.getElementById("user-input").value.trim();
-            const p = document.getElementById("pass-input").value.trim();
+<!-- ══ TOAST ═════════════════════════════════════ -->
+<div id="toast"></div>
 
-            if (u === USERNAME && p === PASSWORD) {
-                document.getElementById("login-screen").style.display = "none";
-                document.getElementById("dashboard").style.display = "block";
-                loadData();
-            } else {
-                document.getElementById("login-error").style.display = "block";
-            }
-        }
+<script>
+  // ── CONFIG ────────────────────────────────────────
+  const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? `${window.location.protocol}//${window.location.hostname}:3000`
+    : "https://backend-cybersericuty.onrender.com";
+  const USERNAME  = "aarav12ee";
+  const PASSWORD  = "waterbottle";
+  const ADMIN_KEY = "aarav12ee";
 
-        // Allow Enter key on login
-        document.addEventListener("keydown", e => {
-            if (e.key === "Enter" && document.getElementById("login-screen").style.display !== "none") {
-                doLogin();
-            }
-        });
+  let allData = [];
 
-        function logout() {
-            document.getElementById("login-screen").style.display = "flex";
-            document.getElementById("dashboard").style.display = "none";
-            document.getElementById("grid").innerHTML = "";
-            document.getElementById("user-input").value = "";
-            document.getElementById("pass-input").value = "";
-        }
+  // ── TOAST ────────────────────────────────────────
+  function toast(msg, type = "") {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.className = `show ${type}`;
+    setTimeout(() => el.className = "", 3000);
+  }
 
-        // ── LOAD DATA ────────────────────────────────────
-        async function loadData() {
-            document.getElementById("loading").style.display = "block";
-            document.getElementById("empty").style.display = "none";
-            document.getElementById("grid").innerHTML = "";
+  // ── LOGIN ────────────────────────────────────────
+  function doLogin() {
+    const u = document.getElementById("user-input").value.trim();
+    const p = document.getElementById("pass-input").value.trim();
+    if (u === USERNAME && p === PASSWORD) {
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("dashboard").style.display = "block";
+      loadData();
+    } else {
+      document.getElementById("login-error").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("login-error").style.display = "none";
+      }, 3000);
+    }
+  }
 
-            try {
-                const res = await fetch(`${API_BASE}/admin-data?key=${ADMIN_KEY}`);
-                const data = await res.json();
+  document.addEventListener("keydown", e => {
+    if (e.key === "Enter" && document.getElementById("login-screen").style.display !== "none") {
+      doLogin();
+    }
+  });
 
-                document.getElementById("loading").style.display = "none";
+  function logout() {
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("grid").innerHTML =
+      '<div id="loading" style="display:none"></div><div id="empty" style="display:none"></div>';
+    document.getElementById("user-input").value = "";
+    document.getElementById("pass-input").value = "";
+    allData = [];
+  }
 
-                if (!data.length) {
-                    document.getElementById("empty").style.display = "block";
-                    return;
-                }
+  // ── LOAD DATA ────────────────────────────────────
+  async function loadData() {
+    const grid = document.getElementById("grid");
 
-                // Stats
-                const withLoc = data.filter(d => d.lat && d.lng).length;
-                const withImg = data.filter(d => d.imageUrl).length;
-                document.getElementById("stat-total").textContent = data.length;
-                document.getElementById("stat-loc").textContent = withLoc;
-                document.getElementById("stat-img").textContent = withImg;
-                document.getElementById("count-badge").textContent = `${data.length} Capture${data.length !== 1 ? "s" : ""} `;
+    // Reset grid, restore loading/empty placeholders
+    grid.innerHTML = `
+      <div id="loading" style="text-align:center;padding:80px 0;grid-column:1/-1">
+        <div class="spinner"></div><p style="color:var(--muted);font-size:0.8rem">Loading captures…</p>
+      </div>
+      <div id="empty" style="display:none;grid-column:1/-1;text-align:center;padding:80px 0">
+        <div class="empty-icon">📭</div>
+        <p style="color:var(--muted);font-size:0.8rem">No captures yet.</p>
+        <a href="/" target="_blank" style="color:var(--accent);font-size:0.75rem">→ Make a capture</a>
+      </div>
+    `;
 
-                // Render cards (newest first)
-                const grid = document.getElementById("grid");
-                [...data].reverse().forEach((entry, i) => {
-                    grid.appendChild(buildCard(entry, data.length - i));
-                });
+    try {
+      const res  = await fetch(`${API_BASE}/admin-data?key=${ADMIN_KEY}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      allData = data;
 
-            } catch (err) {
-                document.getElementById("loading").innerHTML =
-                    `<p style="color:var(--red)">⚠️ Failed to load data.<br><small>${err.message}</small></p>`;
-            }
-        }
+      document.getElementById("loading").style.display = "none";
 
-        // ── BUILD CARD ───────────────────────────────────
-        function buildCard(entry, index) {
-            const card = document.createElement("div");
-            card.className = "capture-card";
+      if (!data.length) {
+        document.getElementById("empty").style.display = "block";
+        setStats(0, 0, 0, null);
+        return;
+      }
 
-            const imgSrc = entry.imageUrl ? `${API_BASE}${entry.imageUrl}` : null;
+      const withLoc = data.filter(d => d.lat && d.lng).length;
+      const withImg = data.filter(d => d.imageUrl).length;
+      setStats(data.length, withLoc, withImg, data[0].time);
+      document.getElementById("count-badge").textContent =
+        `${data.length} Capture${data.length !== 1 ? "s" : ""}`;
 
-            // Format time nicely
-            let timeStr = "Unknown time";
-            if (entry.time) {
-                try {
-                    const d = new Date(entry.time);
-                    timeStr = d.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
-                } catch (_) { timeStr = entry.time; }
-            }
+      renderCards(data);
+    } catch (err) {
+      document.getElementById("loading").innerHTML =
+        `<p style="color:var(--red);font-size:0.8rem">⚠ Failed to load: ${err.message}</p>`;
+      toast("Failed to load data", "error");
+    }
+  }
 
-            const lat = entry.lat ? parseFloat(entry.lat).toFixed(5) : "N/A";
-            const lng = entry.lng ? parseFloat(entry.lng).toFixed(5) : "N/A";
+  function setStats(total, loc, img, latestTime) {
+    document.getElementById("stat-total").textContent   = total;
+    document.getElementById("stat-loc").textContent     = loc;
+    document.getElementById("stat-img").textContent     = img;
 
-            card.innerHTML = `
+    let latest = "—";
+    if (latestTime) {
+      try {
+        const d = new Date(latestTime);
+        latest = d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+      } catch (_) {}
+    }
+    document.getElementById("stat-latest").textContent = latest;
+  }
+
+  // ── RENDER ───────────────────────────────────────
+  function renderCards(data) {
+    const grid = document.getElementById("grid");
+    // Remove old cards but keep loading/empty divs
+    [...grid.querySelectorAll(".capture-card")].forEach(c => c.remove());
+
+    if (!data.length) {
+      document.getElementById("empty").style.display = "block";
+      return;
+    }
+    document.getElementById("empty").style.display = "none";
+
+    data.forEach((entry, i) => {
+      grid.appendChild(buildCard(entry, data.length - i));
+    });
+  }
+
+  // ── SEARCH / FILTER ──────────────────────────────
+  function filterCards() {
+    const q = document.getElementById("search-box").value.toLowerCase();
+    if (!q) { renderCards(allData); return; }
+    const filtered = allData.filter(d => {
+      const str = [d.lat, d.lng, d.time, d.imageUrl].join(" ").toLowerCase();
+      return str.includes(q);
+    });
+    renderCards(filtered);
+  }
+
+  // ── BUILD CARD ───────────────────────────────────
+  function buildCard(entry, index) {
+    const card = document.createElement("div");
+    card.className = "capture-card";
+
+    // Construct image URL — always try if we have a filename
+    const imgSrc = entry.imageUrl ? `${API_BASE}${entry.imageUrl}` : null;
+
+    let timeStr = "Unknown";
+    if (entry.time) {
+      try {
+        const d = new Date(entry.time);
+        timeStr = d.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+      } catch (_) { timeStr = entry.time; }
+    }
+
+    const lat = entry.lat ? parseFloat(entry.lat).toFixed(5) : null;
+    const lng = entry.lng ? parseFloat(entry.lng).toFixed(5) : null;
+
+    // Build image section
+    let imgHtml;
+    if (imgSrc) {
+      imgHtml = `
+        <img src="${imgSrc}"
+          alt="Capture ${index}"
+          loading="lazy"
+          onclick="openLightbox('${imgSrc}')"
+          onerror="this.parentElement.innerHTML='<div class=\\'no-img\\'>📷<span>Photo missing</span></div>'"
+        />
+        <span class="zoom-hint">🔍 Click to zoom</span>
+      `;
+    } else {
+      imgHtml = `<div class="no-img">📷<span>NO PHOTO</span></div>`;
+    }
+
+    // Build location section
+    let locHtml;
+    if (lat && lng) {
+      const mapUrl = entry.mapLink || `https://www.google.com/maps?q=${lat},${lng}`;
+      locHtml = `
+        <div class="coords">
+          <div class="coord-chip">
+            <div class="label">Latitude</div>
+            <div class="val">${lat}</div>
+          </div>
+          <div class="coord-chip">
+            <div class="label">Longitude</div>
+            <div class="val">${lng}</div>
+          </div>
+        </div>
+        <a href="${mapUrl}" target="_blank" class="map-btn">📍 Open in Google Maps</a>
+      `;
+    } else {
+      locHtml = `<div class="no-loc">📡 No location data</div>`;
+    }
+
+    card.innerHTML = `
+      <button class="delete-btn" title="Delete" onclick="deleteCapture('${entry.id}', this)">×</button>
       <div class="img-wrap">
         <span class="img-index">#${index}</span>
-        ${imgSrc
-                    ? `<img src="${imgSrc}" alt="Capture ${index}" loading="lazy"
-                  onclick="openLightbox('${imgSrc}')" style="cursor:zoom-in"/>`
-                    : `<div class="no-img">📷<span>No photo</span></div>`
-                }
+        ${imgHtml}
       </div>
       <div class="capture-body">
         <div class="time-row">🕐 ${timeStr}</div>
-        <div class="info-row">
-          <div class="info-chip">
-            <span class="label">Latitude</span>
-            ${lat}
-          </div>
-          <div class="info-chip">
-            <span class="label">Longitude</span>
-            ${lng}
-          </div>
-        </div>
-        ${entry.mapLink
-                    ? `<a href="${entry.mapLink}" target="_blank" class="map-btn">
-               📍 View on Google Maps
-             </a>`
-                    : (entry.lat && entry.lng
-                        ? `<a href="https://www.google.com/maps?q=${entry.lat},${entry.lng}"
-                    target="_blank" class="map-btn">📍 View on Google Maps</a>`
-                        : `<div style="color:var(--muted);font-size:0.78rem;margin-top:10px;text-align:center">No location data</div>`)
-                }
+        ${locHtml}
       </div>
     `;
-            return card;
-        }
 
-        // ── LIGHTBOX ─────────────────────────────────────
-        function openLightbox(src) {
-            document.getElementById("lightbox-img").src = src;
-            document.getElementById("lightbox").classList.add("show");
-        }
-        function closeLightbox() {
-            document.getElementById("lightbox").classList.remove("show");
-            document.getElementById("lightbox-img").src = "";
-        }
-        document.getElementById("lightbox").addEventListener("click", e => {
-            if (e.target === document.getElementById("lightbox")) closeLightbox();
-        });
-        document.addEventListener("keydown", e => {
-            if (e.key === "Escape") closeLightbox();
-        });
-    </script>
+    return card;
+  }
+
+  // ── DELETE ───────────────────────────────────────
+  async function deleteCapture(id, btn) {
+    if (!confirm("Delete this capture?")) return;
+    try {
+      const res = await fetch(`${API_BASE}/capture/${id}?key=${ADMIN_KEY}`, {
+        method: "DELETE"
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      const card = btn.closest(".capture-card");
+      card.style.transition = "opacity 0.3s, transform 0.3s";
+      card.style.opacity    = "0";
+      card.style.transform  = "scale(0.95)";
+      setTimeout(() => {
+        card.remove();
+        allData = allData.filter(d => d.id !== id);
+        // Update stats
+        const withLoc = allData.filter(d => d.lat && d.lng).length;
+        const withImg = allData.filter(d => d.imageUrl).length;
+        setStats(allData.length, withLoc, withImg, allData[0]?.time || null);
+        document.getElementById("count-badge").textContent =
+          `${allData.length} Capture${allData.length !== 1 ? "s" : ""}`;
+        if (!allData.length) document.getElementById("empty").style.display = "block";
+      }, 300);
+      toast("Deleted", "success");
+    } catch (err) {
+      toast("Delete failed", "error");
+    }
+  }
+
+  // ── LIGHTBOX ─────────────────────────────────────
+  function openLightbox(src) {
+    document.getElementById("lightbox-img").src = src;
+    document.getElementById("lightbox").classList.add("show");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeLightbox() {
+    document.getElementById("lightbox").classList.remove("show");
+    document.getElementById("lightbox-img").src = "";
+    document.body.style.overflow = "";
+  }
+
+  document.getElementById("lightbox").addEventListener("click", e => {
+    if (e.target === document.getElementById("lightbox")) closeLightbox();
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeLightbox();
+  });
+</script>
 </body>
-
 </html>

