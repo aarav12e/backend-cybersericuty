@@ -75,6 +75,7 @@ app.use((req, res, next) => {
 ========================= */
 app.post("/capture", upload.single("photo"), async (req, res) => {
   const { latitude, longitude } = req.body;
+  console.log("Received latitude:", latitude, "longitude:", longitude);  // Debug log
   const hasLocation = latitude && longitude;
   const mapLink = hasLocation ? `https://www.google.com/maps?q=${latitude},${longitude}` : null;
   const imageFile = req.file ? req.file.filename : null;
@@ -131,6 +132,8 @@ app.get("/admin-data", async (req, res) => {
 
   try {
     const captures = await Capture.find().sort({ time: -1 }).lean();
+    console.log("Found captures:", captures.length);  // Debug log
+    captures.forEach(c => console.log("Capture:", c.latitude, c.longitude, c.mapLink));  // Debug log
 
     const result = captures.map(c => ({
       time: c.time,
