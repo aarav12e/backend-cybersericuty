@@ -135,13 +135,19 @@ app.get("/admin-data", async (req, res) => {
     console.log("Found captures:", captures.length);  // Debug log
     captures.forEach(c => console.log("Capture:", c.latitude, c.longitude, c.mapLink));  // Debug log
 
-    const result = captures.map(c => ({
-      time: c.time,
-      lat: c.latitude,
-      lng: c.longitude,
-      mapLink: c.mapLink,
-      imageUrl: c.imageFile ? `/uploads/${c.imageFile}` : null,
-    }));
+    const result = captures.map(c => {
+      let imageUrl = null;
+      if (c.imageFile && fs.existsSync(`uploads/${c.imageFile}`)) {
+        imageUrl = `/uploads/${c.imageFile}`;
+      }
+      return {
+        time: c.time,
+        lat: c.latitude,
+        lng: c.longitude,
+        mapLink: c.mapLink,
+        imageUrl
+      };
+    });
 
     res.json(result);
   } catch (err) {
